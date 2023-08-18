@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather App</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Weather App</h1>
+    <form method="POST" action="/">
+        <label for="country">Select a country:</label>
+        <select id="country" name="country">
+            <option value="" disabled selected>Select a country</option>
+            <!-- Add options for countries here -->
+        </select>
+        <br>
+        <label for="city">Select a city:</label>
+        <select id="city" name="city">
+            <option value="" disabled selected>Select a city</option>
+            <!-- Cities will be populated dynamically using JavaScript -->
+        </select>
+        <br>
+        <button type="submit">Get Weather</button>
+    </form>
+
+
+    {% if weather_data %}
+    <div>
+        <h2>Weather Information</h2>
+
+        <p>Temperature: {{ weather_data['main']['temp'] }}°C</p>
+        <p>Weather: {{ weather_data['weather'][0]['description'] }}</p>
+         <!-- Add more weather data fields as needed -->
+
+
+    </div>
+    {% endif %}
+    <script>
+        // Load countries and cities when the page is ready
+        $(document).ready(function() {
+            loadCountries();
+        });
+
+        // Load countries from the server and populate the country dropdown
+        function loadCountries() {
+            $.get('/get_countries', function(data) {
+                var countries = JSON.parse(data);
+                countries.sort(); // Sort countries alphabetically
+                var countrySelect = $('#country');
+                countrySelect.empty();
+                countrySelect.append($('<option>', {
+                    value: '',
+                    text: 'Select a country'
+                }));
+                $.each(countries, function(index, country) {
+                    countrySelect.append($('<option>', {
+                        value: country,
+                        text: country
+                    }));
+                });
+            });
+        }
+
+        // Load cities for the selected country and populate the city dropdown
+        $('#country').change(function() {
+            var selectedCountry = $(this).val();
+            $.get('/get_cities', { country: selectedCountry }, function(data) {
+                var cities = JSON.parse(data);
+                cities.sort(function(a, b) {
+                    return a.name.localeCompare(b.name); // Sort cities alphabetically by name
+                });
+                var citySelect = $('#city');
+                citySelect.empty();
+                citySelect.append($('<option>', {
+                    value: '',
+                    text: 'Select a city'
+                }));
+                $.each(cities, function(index, city) {
+                    citySelect.append($('<option>', {
+                        value: city.id,
+                        text: city.name
+                    }));
+                });
+            });
+        });
+    </script>
+</body>
+</html>
